@@ -216,7 +216,7 @@ fmcg-realtime-analytics-platform/
 - [x] Cấu hình `trino/etc/catalog/iceberg.properties`
 - [x] Cấu hình `trino/etc/catalog/clickhouse.properties`
 - [x] Viết federated query mẫu
-- [ ] Benchmark Trino vs PostgreSQL baseline
+- [x] Benchmark Trino vs PostgreSQL baseline
 
 **Deliverable:** Trino federated query trả kết quả trong < 5s
 
@@ -229,8 +229,8 @@ fmcg-realtime-analytics-platform/
 **Tasks:**
 
 - [x] Viết `cubejs/schema/PosTransactions.js`
-- [ ] Thêm Grafana datasource cho Cube.js API
-- [ ] Update dashboard dùng Cube.js làm metric source
+- [x] Thêm Grafana datasource cho Cube.js API
+- [x] Update dashboard dùng Cube.js làm metric source
 
 **Deliverable:** `GET /cubejs-api/v1/load` trả metrics, Grafana connect được
 
@@ -242,7 +242,7 @@ fmcg-realtime-analytics-platform/
 
 **Tasks:**
 
-- [ ] Chạy benchmark — so sánh query time:
+- [x] Chạy benchmark — so sánh query time:
 
   | Query Type | PostgreSQL | ClickHouse | ClickHouse + MV |
   |---|---|---|---|
@@ -251,8 +251,8 @@ fmcg-realtime-analytics-platform/
   | Top 10 products (30 days) | ~18.7s | ~1.2s | ~0.12s |
   | Federated (hot + cold) | N/A | N/A | ~2.8s (Trino) |
 
-- [ ] Viết README.md (capsule-render + Mermaid + badges + devicons)
-- [ ] Viết `docs/interview_prep.md`
+- [x] Viết README.md (capsule-render + Mermaid + badges + devicons)
+- [x] Viết `docs/interview_prep.md`
 - [ ] Push GitHub: `fmcg-realtime-analytics-platform`
 
 ---
