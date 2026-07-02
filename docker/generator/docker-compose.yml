@@ -1,0 +1,27 @@
+services:
+  generator:
+    build:
+      context: ../../generator
+      dockerfile: Dockerfile
+    container_name: fmcg-generator
+    restart: unless-stopped
+    ports:
+      - "${GENERATOR_PORT:-8000}:8000"
+    environment:
+      KAFKA_BOOTSTRAP_SERVERS: ${KAFKA_BOOTSTRAP_SERVERS:-kafka:29092}
+      KAFKA_TOPIC: ${KAFKA_TOPIC:-pos.transactions}
+      BATCH_SIZE: ${BATCH_SIZE:-100}
+      THROUGHPUT_TPS: ${THROUGHPUT_TPS:-1000}
+    networks:
+      - fmcg-network
+    depends_on:
+      - kafka
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+networks:
+  fmcg-network:
+    driver: bridge
