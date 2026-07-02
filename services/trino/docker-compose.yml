@@ -1,0 +1,23 @@
+services:
+  trino:
+    image: trinodb/trino:451
+    container_name: fmcg-trino
+    restart: unless-stopped
+    ports:
+      - "${TRINO_PORT:-8060}:8080"
+    volumes:
+      - ./catalog:/etc/trino/catalog:ro
+    networks:
+      - fmcg-network
+    depends_on:
+      hive-metastore:
+        condition: service_started
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/v1/info"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+
+networks:
+  fmcg-network:
+    driver: bridge

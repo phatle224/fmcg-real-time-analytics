@@ -1,0 +1,26 @@
+services:
+  cubejs:
+    image: cubejs/cube:v0.35
+    container_name: fmcg-cubejs
+    restart: unless-stopped
+    ports:
+      - "${CUBEJS_PORT:-4000}:4000"
+    environment:
+      CUBEJS_DB_TYPE: trino
+      CUBEJS_DB_HOST: trino
+      CUBEJS_DB_PORT: 8080
+      CUBEJS_DB_USER: admin
+      CUBEJS_DB_PRESTO_CATALOG: clickhouse
+      CUBEJS_API_SECRET: fmcg_cubejs_secret_key_123
+      CUBEJS_DEV_MODE: "true"
+    volumes:
+      - ./schema:/cube/conf/model:ro
+    networks:
+      - fmcg-network
+    depends_on:
+      trino:
+        condition: service_healthy
+
+networks:
+  fmcg-network:
+    driver: bridge

@@ -41,8 +41,31 @@ def _get_producer() -> KafkaProducer:
 
 def _serialize(tx: POSTransaction) -> dict:
     d = tx.model_dump()
-    d["timestamp"] = tx.timestamp.strftime("%Y-%m-%d %H:%M:%S.%f")[:-3]
-    return d
+    # Convert timestamp to epoch milliseconds for Kafka Connect Compatibility
+    d["timestamp"] = int(tx.timestamp.timestamp() * 1000)
+    
+    # Wrap in Kafka Connect Schema & Payload envelope
+    return {
+        "schema": {
+            "type": "struct",
+            "fields": [
+                {"field": "transaction_id", "type": "string", "optional": False},
+                {"field": "pos_id", "type": "string", "optional": False},
+                {"field": "product_id", "type": "string", "optional": False},
+                {"field": "product_name", "type": "string", "optional": False},
+                {"field": "category", "type": "string", "optional": False},
+                {"field": "quantity", "type": "int32", "optional": False},
+                {"field": "unit_price", "type": "double", "optional": False},
+                {"field": "total_amount", "type": "double", "optional": False},
+                {"field": "region", "type": "string", "optional": False},
+                {"field": "store_type", "type": "string", "optional": False},
+                {"field": "timestamp", "type": "int64", "optional": False, "name": "org.apache.kafka.connect.data.Timestamp"}
+            ],
+            "optional": False,
+            "name": "pos_transaction"
+        },
+        "payload": d
+    }
 
 
 @asynccontextmanager

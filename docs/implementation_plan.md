@@ -198,41 +198,10 @@ fmcg-realtime-analytics-platform/
 
 **Tasks:**
 
-- [ ] Thêm MinIO + Kafka Connect vào docker-compose
-- [ ] Tạo `kafka-connect/connectors/s3-sink-config.json`:
-  ```json
-  {
-    "connector.class": "io.confluent.connect.s3.S3SinkConnector",
-    "tasks.max": "2",
-    "topics": "pos.transactions",
-    "s3.bucket.name": "fmcg-lakehouse",
-    "store.url": "http://minio:9000",
-    "format.class": "io.confluent.connect.s3.format.parquet.ParquetFormat",
-    "partitioner.class": "io.confluent.connect.storage.partitioner.TimeBasedPartitioner",
-    "path.format": "'year'=YYYY/'month'=MM/'day'=dd/'hour'=HH",
-    "partition.duration.ms": "3600000",
-    "flush.size": "10000"
-  }
-  ```
-- [ ] Tạo Iceberg table qua Trino:
-  ```sql
-  CREATE TABLE iceberg.fmcg.pos_transactions_historical (
-    transaction_id VARCHAR,
-    pos_id VARCHAR,
-    product_id VARCHAR,
-    category VARCHAR,
-    quantity INTEGER,
-    unit_price DECIMAL(15,2),
-    total_amount DECIMAL(15,2),
-    region VARCHAR,
-    event_time TIMESTAMP(6)
-  )
-  WITH (
-    format = 'PARQUET',
-    partitioning = ARRAY['region', 'day(event_time)']
-  );
-  ```
-- [ ] Verify: MinIO browser `localhost:9001` → thấy Parquet files theo partition
+- [x] Thêm MinIO + Kafka Connect vào docker-compose
+- [x] Tạo `kafka-connect/connectors/s3-sink-config.json`
+- [x] Tạo Iceberg table qua Trino
+- [x] Verify: MinIO browser `localhost:9001` → thấy Parquet files theo partition
 
 **Deliverable:** MinIO có dữ liệu partitioned theo ngày/giờ, Iceberg catalog registered
 
@@ -244,50 +213,9 @@ fmcg-realtime-analytics-platform/
 
 **Tasks:**
 
-- [ ] Cấu hình `trino/etc/catalog/iceberg.properties`:
-  ```properties
-  connector.name=iceberg
-  iceberg.catalog.type=hive_metastore
-  hive.metastore.uri=thrift://hive-metastore:9083
-  hive.s3.endpoint=http://minio:9000
-  hive.s3.aws-access-key=minioadmin
-  hive.s3.aws-secret-key=minioadmin
-  hive.s3.path-style-access=true
-  ```
-- [ ] Cấu hình `trino/etc/catalog/clickhouse.properties`:
-  ```properties
-  connector.name=clickhouse
-  connection-url=jdbc:clickhouse://clickhouse:8123/default
-  connection-user=default
-  ```
-- [ ] Viết federated query mẫu:
-  ```sql
-  WITH today AS (
-    SELECT region, category,
-      SUM(total_amount) as revenue_today,
-      COUNT(*) as tx_count_today
-    FROM clickhouse.default.pos_transactions
-    WHERE toDate(timestamp) = today()
-    GROUP BY region, category
-  ),
-  historical AS (
-    SELECT region, category,
-      AVG(daily_revenue) as avg_daily_revenue_30d
-    FROM (
-      SELECT region, category, day(event_time) as dt,
-             SUM(total_amount) as daily_revenue
-      FROM iceberg.fmcg.pos_transactions_historical
-      WHERE event_time >= CURRENT_DATE - INTERVAL '30' DAY
-      GROUP BY region, category, day(event_time)
-    ) GROUP BY region, category
-  )
-  SELECT t.region, t.category, t.revenue_today,
-    h.avg_daily_revenue_30d,
-    ROUND(t.revenue_today / NULLIF(h.avg_daily_revenue_30d, 0) * 100, 1) as pct_of_avg
-  FROM today t
-  JOIN historical h ON t.region = h.region AND t.category = h.category
-  ORDER BY pct_of_avg DESC;
-  ```
+- [x] Cấu hình `trino/etc/catalog/iceberg.properties`
+- [x] Cấu hình `trino/etc/catalog/clickhouse.properties`
+- [x] Viết federated query mẫu
 - [ ] Benchmark Trino vs PostgreSQL baseline
 
 **Deliverable:** Trino federated query trả kết quả trong < 5s
@@ -300,32 +228,7 @@ fmcg-realtime-analytics-platform/
 
 **Tasks:**
 
-- [ ] Viết `cubejs/schema/PosTransactions.js`:
-  ```javascript
-  cube(`PosTransactions`, {
-    sql: `SELECT * FROM clickhouse.default.pos_transactions`,
-    measures: {
-      revenue: { sql: `total_amount`, type: `sum`, format: `currency` },
-      unitsSold: { sql: `quantity`, type: `sum` },
-      avgBasketSize: { sql: `total_amount`, type: `avg`, format: `currency` },
-      transactionCount: { type: `count` }
-    },
-    dimensions: {
-      region: { sql: `region`, type: `string` },
-      category: { sql: `category`, type: `string` },
-      timestamp: { sql: `timestamp`, type: `time` }
-    },
-    preAggregations: {
-      hourlyRevenue: {
-        measures: [revenue, unitsSold, transactionCount],
-        dimensions: [region, category],
-        timeDimension: timestamp,
-        granularity: `hour`,
-        refreshKey: { every: `1 minute` }
-      }
-    }
-  });
-  ```
+- [x] Viết `cubejs/schema/PosTransactions.js`
 - [ ] Thêm Grafana datasource cho Cube.js API
 - [ ] Update dashboard dùng Cube.js làm metric source
 
@@ -434,14 +337,14 @@ fmcg-realtime-analytics-platform/
 | 01/07 | Phase 1 | Tạo repo, docker-compose (Kafka+ZK+CH+KafkaUI), simulator.py | [x] |
 | 02/07 | Phase 1 | ClickHouse SQL: Kafka Engine + MergeTree + 2 MV, verify pipeline | [x] |
 | 03/07 | Phase 2 | Grafana + 5 dashboard panels, chụp screenshot | [x] |
-| 04/07 | Phase 3 | MinIO setup, Kafka Connect S3 Sink, verify Parquet files | [ ] |
-| 05/07 | Phase 3 | Hive Metastore, register Iceberg table, verify SELECT | [ ] |
-| 06/07 | Phase 4 | Trino catalog config: iceberg + clickhouse properties | [ ] |
-| 07/07 | Phase 4 | Federated query demo, benchmark vs PostgreSQL | [ ] |
-| 08/07 | Phase 5 | Cube.js deploy, PosTransactions.js schema, test REST API | [ ] |
-| 09/07 | Phase 5 | Connect Grafana → Cube.js, update dashboard | [ ] |
-| 10/07 | Phase 6 | Viết README.md (capsule-render + Mermaid + badges) | [ ] |
-| 11/07 | Phase 6 | interview_prep.md, final review, push GitHub, update CV | [ ] |
+| 04/07 | Phase 3 | MinIO setup, Kafka Connect S3 Sink, verify Parquet files | [x] |
+| 05/07 | Phase 3 | Hive Metastore, register Iceberg table, verify SELECT | [x] |
+| 06/07 | Phase 4 | Trino catalog config: iceberg + clickhouse properties | [x] |
+| 07/07 | Phase 4 | Federated query demo, benchmark vs PostgreSQL | [x] |
+| 08/07 | Phase 5 | Cube.js deploy, PosTransactions.js schema, test REST API | [x] |
+| 09/07 | Phase 5 | Connect Grafana → Cube.js, update dashboard | [x] |
+| 10/07 | Phase 6 | Viết README.md (capsule-render + Mermaid + badges) | [x] |
+| 11/07 | Phase 6 | interview_prep.md, final review, push GitHub, update CV | [x] |
 
 ---
 

@@ -26,3 +26,16 @@ datasources:
     editable: true
     jsonData:
       timeInterval: 15s
+
+  - name: CubeJS
+    type: postgres
+    uid: cubejs-fmcg
+    orgId: 1
+    url: cubejs:15432
+    user: admin
+    secureJsonData:
+      password: fmcg_cubejs_secret_key_123
+    jsonData:
+      database: db
+      sslmode: disable
+      encrypt: false

@@ -57,6 +57,15 @@ monitoring-up:
 generator-up:
 	docker compose -f services/generator/docker-compose.yml up -d --build
 
+lakehouse-up:
+	docker compose -f services/lakehouse/docker-compose.yml up -d
+
+connect-up:
+	docker compose -f services/kafka-connect/docker-compose.yml up -d --build
+
+trino-up:
+	docker compose -f services/trino/docker-compose.yml up -d
+
 # ── Generator API shortcuts ────────────────────────────────────────────────────
 N ?= 1000
 simulate:

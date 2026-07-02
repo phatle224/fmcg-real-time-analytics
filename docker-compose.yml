@@ -3,3 +3,8 @@ include:
   - path: services/clickhouse/docker-compose.yml
   - path: services/monitoring/docker-compose.yml
   - path: services/generator/docker-compose.yml
+  - path: services/lakehouse/docker-compose.yml
+  - path: services/kafka-connect/docker-compose.yml
+  - path: services/trino/docker-compose.yml
+  - path: services/cubejs/docker-compose.yml
+  - path: services/postgres/docker-compose.yml

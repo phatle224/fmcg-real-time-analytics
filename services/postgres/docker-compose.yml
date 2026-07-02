@@ -1,0 +1,22 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: fmcg-postgres
+    restart: unless-stopped
+    ports:
+      - "${POSTGRES_PORT:-15433}:5432"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgrespassword
+      POSTGRES_DB: fmcg
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    networks:
+      - fmcg-network
+
+volumes:
+  postgres-data:
+
+networks:
+  fmcg-network:
+    driver: bridge

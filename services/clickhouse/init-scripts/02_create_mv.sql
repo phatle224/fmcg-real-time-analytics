@@ -8,17 +8,17 @@ CREATE MATERIALIZED VIEW IF NOT EXISTS mv_kafka_to_pos
 TO pos_transactions
 AS
 SELECT
-    transaction_id,
-    pos_id,
-    product_id,
-    product_name,
-    category,
-    quantity,
-    unit_price,
-    total_amount,
-    region,
-    store_type,
-    timestamp
+    JSONExtractString(raw, 'payload', 'transaction_id') as transaction_id,
+    JSONExtractString(raw, 'payload', 'pos_id') as pos_id,
+    JSONExtractString(raw, 'payload', 'product_id') as product_id,
+    JSONExtractString(raw, 'payload', 'product_name') as product_name,
+    JSONExtractString(raw, 'payload', 'category') as category,
+    JSONExtractUInt(raw, 'payload', 'quantity') as quantity,
+    JSONExtract(raw, 'payload', 'unit_price', 'Decimal(15, 2)') as unit_price,
+    JSONExtract(raw, 'payload', 'total_amount', 'Decimal(15, 2)') as total_amount,
+    JSONExtractString(raw, 'payload', 'region') as region,
+    JSONExtractString(raw, 'payload', 'store_type') as store_type,
+    fromUnixTimestamp64Milli(JSONExtractInt(raw, 'payload', 'timestamp')) as timestamp
 FROM pos_kafka_queue;
 
 

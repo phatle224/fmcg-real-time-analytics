@@ -6,24 +6,14 @@
 -- 1. Kafka Engine — acts as Kafka Consumer, reads from pos.transactions topic
 CREATE TABLE IF NOT EXISTS pos_kafka_queue
 (
-    transaction_id  String,
-    pos_id          String,
-    product_id      String,
-    product_name    String,
-    category        String,
-    quantity        UInt8,
-    unit_price      Decimal(15, 2),
-    total_amount    Decimal(15, 2),
-    region          String,
-    store_type      String,
-    timestamp       DateTime64(3, 'UTC')
+    raw String
 )
 ENGINE = Kafka
 SETTINGS
     kafka_broker_list     = 'kafka:29092',
     kafka_topic_list      = 'pos.transactions',
     kafka_group_name      = 'clickhouse-pos-consumer',
-    kafka_format          = 'JSONEachRow',
+    kafka_format          = 'JSONAsString',
     kafka_num_consumers   = 4,
     kafka_skip_broken_messages = 100;
 
