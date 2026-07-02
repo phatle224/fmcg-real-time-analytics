@@ -46,16 +46,16 @@ ps:
 
 # ── Individual stacks ──────────────────────────────────────────────────────────
 kafka-up:
-	docker compose -f docker/kafka/docker-compose.yml up -d
+	docker compose -f services/kafka/docker-compose.yml up -d
 
 clickhouse-up:
-	docker compose -f docker/clickhouse/docker-compose.yml up -d
+	docker compose -f services/clickhouse/docker-compose.yml up -d
 
 monitoring-up:
-	docker compose -f docker/monitoring/docker-compose.yml up -d
+	docker compose -f services/monitoring/docker-compose.yml up -d
 
 generator-up:
-	docker compose -f docker/generator/docker-compose.yml up -d --build
+	docker compose -f services/generator/docker-compose.yml up -d --build
 
 # ── Generator API shortcuts ────────────────────────────────────────────────────
 N ?= 1000

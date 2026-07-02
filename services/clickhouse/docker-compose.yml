@@ -13,8 +13,8 @@ services:
     volumes:
       - clickhouse-data:/var/lib/clickhouse
       - clickhouse-logs:/var/log/clickhouse-server
-      - ../../clickhouse/init-scripts:/docker-entrypoint-initdb.d:ro
-      - ../../clickhouse/config/clickhouse-users.xml:/etc/clickhouse-server/users.d/custom-users.xml:ro
+      - ./init-scripts:/docker-entrypoint-initdb.d:ro
+      - ./config/clickhouse-users.xml:/etc/clickhouse-server/users.d/custom-users.xml:ro
     networks:
       - fmcg-network
     healthcheck:

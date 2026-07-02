@@ -1,5 +1,5 @@
 include:
-  - path: docker/kafka/docker-compose.yml
-  - path: docker/clickhouse/docker-compose.yml
-  - path: docker/monitoring/docker-compose.yml
-  - path: docker/generator/docker-compose.yml
+  - path: services/kafka/docker-compose.yml
+  - path: services/clickhouse/docker-compose.yml
+  - path: services/monitoring/docker-compose.yml
+  - path: services/generator/docker-compose.yml
