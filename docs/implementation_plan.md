@@ -192,7 +192,7 @@ fmcg-realtime-analytics-platform/
 
 ---
 
-### Phase 3: Cold Path — MinIO + Iceberg (04-05/07)
+### Phase 3: Cold Path - MinIO + Iceberg (04-05/07)
 
 **Mục tiêu:** Kafka → S3 → Iceberg pipeline
 
@@ -297,19 +297,19 @@ fmcg-realtime-analytics-platform/
 ## 7. Interview Q&A Preparation
 
 ### Q1: "Tại sao dùng ClickHouse MergeTree thay vì PostgreSQL cho OLAP?"
-> PostgreSQL dùng row-based storage — khi aggregate hàng triệu row, phải scan toàn bộ column. ClickHouse dùng columnar storage + MergeTree engine — chỉ đọc đúng cột cần thiết, kết hợp compression. Trong project này, `SUM(total_amount) GROUP BY region` trên 10M rows: PostgreSQL mất 12s, ClickHouse raw mất 0.8s, ClickHouse với Materialized View mất 80ms.
+> PostgreSQL dùng row-based storage: khi aggregate hàng triệu row, phải scan toàn bộ column. ClickHouse dùng columnar storage + MergeTree engine - chỉ đọc đúng cột cần thiết, kết hợp compression. Trong project này, `SUM(total_amount) GROUP BY region` trên 10M rows: PostgreSQL mất 12s, ClickHouse raw mất 0.8s, ClickHouse với Materialized View mất 80ms.
 
 ### Q2: "Kafka Engine trong ClickHouse hoạt động thế nào?"
-> ClickHouse Kafka Engine là một special table engine — behave như một Kafka Consumer tích hợp sẵn. Tôi tạo 3 objects: (1) `pos_kafka_queue` với Kafka Engine trỏ đến topic, (2) `pos_transactions` MergeTree là bảng lưu trữ thực, (3) Materialized View làm bridge. Không cần viết consumer code bên ngoài. Throughput đạt ~50,000 events/second trên single node.
+> ClickHouse Kafka Engine là một special table engine: behave như một Kafka Consumer tích hợp sẵn. Tôi tạo 3 objects: (1) `pos_kafka_queue` với Kafka Engine trỏ đến topic, (2) `pos_transactions` MergeTree là bảng lưu trữ thực, (3) Materialized View làm bridge. Không cần viết consumer code bên ngoài. Throughput đạt ~50,000 events/second trên single node.
 
 ### Q3: "Apache Iceberg mang lại gì so với raw Parquet trên S3?"
 > Raw Parquet không có ACID, không có schema registry. Iceberg thêm metadata layer: (1) Time-travel: `SELECT * FROM table FOR TIMESTAMP AS OF '2026-06-01'`, (2) Schema evolution: ADD COLUMN không cần rewrite files, (3) Partition evolution: đổi partition scheme mà không migrate data, (4) ACID transactions: concurrent writes an toàn.
 
 ### Q4: "Tại sao cần Trino khi đã có ClickHouse?"
-> ClickHouse chỉ query được data bên trong nó. Iceberg lưu historical data trên MinIO S3. Trino là federated query engine: cấu hình 2 connectors — ClickHouse (hot data hôm nay) và Iceberg (cold data 30 ngày qua). Data Analyst dùng 1 SQL duy nhất, Trino tự phân tán query xuống đúng hệ thống, merge kết quả trả về.
+> ClickHouse chỉ query được data bên trong nó. Iceberg lưu historical data trên MinIO S3. Trino là federated query engine: cấu hình 2 connectors - ClickHouse (hot data hôm nay) và Iceberg (cold data 30 ngày qua). Data Analyst dùng 1 SQL duy nhất, Trino tự phân tán query xuống đúng hệ thống, merge kết quả trả về.
 
 ### Q5: "Cube.js giải quyết vấn đề gì?"
-> Không có semantic layer, metric `revenue` bị tính khác nhau ở mỗi team. Cube.js define một lần duy nhất — mọi consumer (Grafana, BI tool, frontend) dùng cùng definition. Ngoài ra Cube.js có pre-aggregation engine tự build materialized tables theo schedule, giảm tải cho ClickHouse.
+> Không có semantic layer, metric `revenue` bị tính khác nhau ở mỗi team. Cube.js define một lần duy nhất - mọi consumer (Grafana, BI tool, frontend) dùng cùng definition. Ngoài ra Cube.js có pre-aggregation engine tự build materialized tables theo schedule, giảm tải cho ClickHouse.
 
 ### Q6: "Design scalability nếu lên production?"
 > (1) Kafka: scale broker + partition topic theo region shard key, (2) ClickHouse: cluster mode với ReplicatedMergeTree + shards theo region, (3) MinIO → AWS S3 hoặc GCS, (4) Trino: scale worker nodes theo query load, (5) Kubernetes với Helm charts: ClickHouse Operator, Strimzi Kafka Operator.
