@@ -204,50 +204,57 @@ fmcg-realtime-analytics-platform/
 ├── README.md                       # English README (this file)
 ├── README_VI.md                    # Vietnamese README
 │
-├── generator/                      # Event simulation engine
-│   ├── Dockerfile
-│   ├── requirements.txt
-│   ├── main.py                     # FastAPI ingestion microservice
-│   ├── schemas.py                  # Pydantic schemas
-│   └── simulator.py                # Faker-based transaction generation logic
-│
-├── clickhouse/                     # ClickHouse configuration
-│   ├── config/
-│   │   └── clickhouse-users.xml    # Custom profiles and credentials
-│   └── init-scripts/
-│       ├── 01_create_tables.sql    # Engine and raw tables setup
-│       └── 02_create_mv.sql        # Pre-aggregating Materialized Views
-│
-├── kafka-connect/                  # Connect architecture
-│   ├── Dockerfile                  # Builds connector with S3 plugin
-│   └── connectors/
-│       └── s3-sink-config.json     # MinIO partition dumping parameters
-│
-├── trino/                          # Query coordinator settings
-│   └── etc/
-│       ├── config.properties
-│       ├── jvm.config
-│       └── catalog/
-│           ├── iceberg.properties  # Iceberg to MinIO connector configuration
-│           └── clickhouse.properties# ClickHouse JDBC catalog settings
-│
-├── cubejs/                         # Semantic layer microservice
-│   ├── Dockerfile
-│   ├── cube.js                     # Port, credentials and env bindings
-│   └── schema/
-│       ├── PosTransactions.js      # Dimension and measure definitions
-│       └── Products.js
-│
-├── services/                       # Decoupled docker-compose files
-│   ├── clickhouse/                 # ClickHouse service definition
-│   ├── cubejs/                     # Cube.js service definition
-│   ├── generator/                  # FastAPI & simulator service definition
+├── services/                       # Decoupled services and configurations
+│   ├── clickhouse/                 # ClickHouse service & configurations
+│   │   ├── config/
+│   │   │   └── clickhouse-users.xml# Custom profiles and credentials
+│   │   ├── init-scripts/
+│   │   │   ├── 01_create_tables.sql# Engine and raw tables setup
+│   │   │   └── 02_create_mv.sql    # Pre-aggregating Materialized Views
+│   │   └── docker-compose.yml
+│   │
+│   ├── cubejs/                     # Cube.js service & schema definitions
+│   │   ├── Dockerfile
+│   │   ├── cube.js                 # Port, credentials and env bindings
+│   │   ├── schema/
+│   │   │   ├── PosTransactions.js  # Dimension and measure definitions
+│   │   │   └── Products.js
+│   │   └── docker-compose.yml
+│   │
+│   ├── generator/                  # Event simulation engine & API
+│   │   ├── Dockerfile
+│   │   ├── requirements.txt
+│   │   ├── main.py                 # FastAPI ingestion microservice
+│   │   ├── schemas.py              # Pydantic schemas
+│   │   ├── simulator.py            # Faker-based transaction generation logic
+│   │   └── docker-compose.yml
+│   │
 │   ├── kafka/                      # Kafka, Zookeeper & Kafka UI definition
-│   ├── kafka-connect/              # Kafka Connect service definition
+│   │   └── docker-compose.yml
+│   │
+│   ├── kafka-connect/              # Connect architecture & S3 Sink configs
+│   │   ├── Dockerfile              # Builds connector with S3 plugin
+│   │   ├── connectors/
+│   │   │   └── s3-sink-config.json # MinIO partition dumping parameters
+│   │   └── docker-compose.yml
+│   │
 │   ├── lakehouse/                  # MinIO, Hive Metastore & MySQL definition
+│   │   └── docker-compose.yml
+│   │
 │   ├── monitoring/                 # Grafana, Prometheus & cAdvisor definition
+│   │   └── docker-compose.yml
+│   │
 │   ├── postgres/                   # PostgreSQL benchmark baseline definition
-│   └── trino/                      # Trino service definition
+│   │   └── docker-compose.yml
+│   │
+│   └── trino/                      # Query coordinator settings & catalogs
+│       ├── docker-compose.yml
+│       └── etc/
+│           ├── config.properties
+│           ├── jvm.config
+│           └── catalog/
+│               ├── iceberg.properties   # Iceberg to MinIO connector configuration
+│               └── clickhouse.properties# ClickHouse JDBC catalog settings
 │
 ├── scripts/
 │   ├── benchmark.py                # Latency measurement script
@@ -288,9 +295,19 @@ docker compose up -d
 
 ### Step 3: Register Kafka Connect S3 Sink Connector
 Register the connector task to start archiving Kafka streams to MinIO as Parquet:
+
+```powershell
+# Windows (PowerShell)
+Invoke-RestMethod -Uri "http://localhost:8083/connectors" `
+  -Method Post `
+  -ContentType "application/json" `
+  -Body (Get-Content "services/kafka-connect/connectors/s3-sink-config.json" -Raw)
+```
+
 ```bash
+# macOS/Linux (Bash)
 curl -i -X POST -H "Content-Type: application/json" \
-  --data @kafka-connect/connectors/s3-sink-config.json \
+  --data @services/kafka-connect/connectors/s3-sink-config.json \
   http://localhost:8083/connectors
 ```
 

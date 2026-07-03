@@ -204,50 +204,57 @@ fmcg-realtime-analytics-platform/
 ├── README.md                       # Tài liệu hướng dẫn chính tiếng Anh
 ├── README_VI.md                    # Tài liệu hướng dẫn chính tiếng Việt (tệp này)
 │
-├── generator/                      # Mã nguồn bộ giả lập POS Events
-│   ├── Dockerfile
-│   ├── requirements.txt
-│   ├── main.py                     # FastAPI Ingest API đẩy events vào Kafka
-│   ├── schemas.py                  # Pydantic schemas của sự kiện
-│   └── simulator.py                # Faker script tạo dữ liệu POS
-│
-├── clickhouse/                     # Cấu hình ClickHouse
-│   ├── config/
-│   │   └── clickhouse-users.xml    # Định nghĩa tài khoản và phân quyền
-│   └── init-scripts/
-│       ├── 01_create_tables.sql    # Khởi tạo bảng raw & bảng Kafka Engine
-│       └── 02_create_mv.sql        # Định nghĩa các Materialized Views tiền tổng hợp
-│
-├── kafka-connect/                  # Cấu hình Kafka Connect S3 Sink
-│   ├── Dockerfile                  # Cài đặt s3 connector plugin trên base image
-│   └── connectors/
-│       └── s3-sink-config.json     # File cấu hình đẩy dữ liệu Kafka vào MinIO
-│
-├── trino/                          # Cấu hình Trino Federated Query Engine
-│   └── etc/
-│       ├── config.properties       # Cấu hình node & bộ nhớ
-│       ├── jvm.config              # JVM arguments tối ưu garbage collection
-│       └── catalog/
-│           ├── iceberg.properties  # Khai báo catalog kết nối với MinIO Iceberg
-│           └── clickhouse.properties# Khai báo catalog kết nối với ClickHouse
-│
-├── cubejs/                         # Cấu hình Cube.js Semantic Layer
-│   ├── Dockerfile
-│   ├── cube.js                     # File cấu hình bảo mật & database credentials
-│   └── schema/
-│       ├── PosTransactions.js      # Định nghĩa các metrics và dimensions
-│       └── Products.js
-│
-├── services/                       # Phân tách dịch vụ thành các docker-compose nhỏ
-│   ├── clickhouse/                 # ClickHouse service
-│   ├── cubejs/                     # Cube.js service
-│   ├── generator/                  # FastAPI & simulator service
-│   ├── kafka/                      # Kafka, Zookeeper & Kafka UI
-│   ├── kafka-connect/              # Kafka Connect service
-│   ├── lakehouse/                  # MinIO, MySQL metastore-db & Hive Metastore
-│   ├── monitoring/                 # Grafana, Prometheus & cAdvisor
-│   ├── postgres/                   # PostgreSQL benchmark baseline service
-│   └── trino/                      # Trino service
+├── services/                       # Cấu hình các dịch vụ độc lập
+│   ├── clickhouse/                 # Dịch vụ ClickHouse & cấu hình liên quan
+│   │   ├── config/
+│   │   │   └── clickhouse-users.xml# Định nghĩa tài khoản và phân quyền
+│   │   ├── init-scripts/
+│   │   │   ├── 01_create_tables.sql# Khởi tạo bảng raw & bảng Kafka Engine
+│   │   │   └── 02_create_mv.sql    # Định nghĩa các Materialized Views tiền tổng hợp
+│   │   └── docker-compose.yml
+│   │
+│   ├── cubejs/                     # Dịch vụ Cube.js & định nghĩa schema ngữ nghĩa
+│   │   ├── Dockerfile
+│   │   ├── cube.js                 # Cấu hình bảo mật và kết nối database
+│   │   ├── schema/
+│   │   │   ├── PosTransactions.js  # Định nghĩa các metrics và dimensions
+│   │   │   └── Products.js
+│   │   └── docker-compose.yml
+│   │
+│   ├── generator/                  # Bộ giả lập giao dịch POS & API
+│   │   ├── Dockerfile
+│   │   ├── requirements.txt
+│   │   ├── main.py                 # FastAPI Ingest API đẩy events vào Kafka
+│   │   ├── schemas.py              # Định nghĩa Pydantic schemas của sự kiện
+│   │   ├── simulator.py            # Script Faker tạo dữ liệu POS giao dịch
+│   │   └── docker-compose.yml
+│   │
+│   ├── kafka/                      # Kafka, Zookeeper & giao diện quản trị Kafka UI
+│   │   └── docker-compose.yml
+│   │
+│   ├── kafka-connect/              # Kafka Connect & cấu hình S3 Sink
+│   │   ├── Dockerfile              # Cài đặt s3 connector plugin trên base image
+│   │   ├── connectors/
+│   │   │   └── s3-sink-config.json # File cấu hình đẩy dữ liệu Kafka vào MinIO
+│   │   └── docker-compose.yml
+│   │
+│   ├── lakehouse/                  # Cấu hình MinIO, Hive Metastore & MySQL DB
+│   │   └── docker-compose.yml
+│   │
+│   ├── monitoring/                 # Cấu hình Grafana, Prometheus & cAdvisor
+│   │   └── docker-compose.yml
+│   │
+│   ├── postgres/                   # Dịch vụ PostgreSQL benchmark làm hệ quy chiếu
+│   │   └── docker-compose.yml
+│   │
+│   └── trino/                      # Cấu hình Trino Federated Engine & Catalogs
+│       ├── docker-compose.yml
+│       └── etc/
+│           ├── config.properties
+│           ├── jvm.config
+│           └── catalog/
+│               ├── iceberg.properties   # Khai báo kết nối với MinIO Iceberg
+│               └── clickhouse.properties# Khai báo kết nối với ClickHouse JDBC
 │
 ├── scripts/
 │   ├── benchmark.py                # Script chạy benchmark so sánh hiệu năng trực tiếp
@@ -288,9 +295,19 @@ docker compose up -d
 
 ### Bước 3: Đăng ký Kafka Connect S3 Sink Connector
 Kích hoạt tiến trình đồng bộ dữ liệu từ Kafka xuống MinIO dạng Parquet:
+
+```powershell
+# Windows (PowerShell)
+Invoke-RestMethod -Uri "http://localhost:8083/connectors" `
+  -Method Post `
+  -ContentType "application/json" `
+  -Body (Get-Content "services/kafka-connect/connectors/s3-sink-config.json" -Raw)
+```
+
 ```bash
+# macOS/Linux (Bash)
 curl -i -X POST -H "Content-Type: application/json" \
-  --data @kafka-connect/connectors/s3-sink-config.json \
+  --data @services/kafka-connect/connectors/s3-sink-config.json \
   http://localhost:8083/connectors
 ```
 
