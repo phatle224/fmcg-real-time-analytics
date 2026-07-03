@@ -128,6 +128,20 @@ def simulate(count: int = 100):
     }
 
 
+@app.post("/api/v1/events", tags=["events"])
+def ingest_event(tx: POSTransaction):
+    """Ingest a single transaction event into Kafka."""
+    global _total_sent
+    producer = _get_producer()
+    try:
+        producer.send(KAFKA_TOPIC, value=_serialize(tx))
+        producer.flush()
+        _total_sent += 1
+        return {"status": "success", "transaction_id": tx.transaction_id, "total_sent": _total_sent}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 # ── Continuous stream ──────────────────────────────────────────────────────────
 async def _stream_loop(tps: int):
     global _streaming, _total_sent

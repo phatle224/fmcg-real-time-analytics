@@ -337,8 +337,15 @@ CREATE TABLE IF NOT EXISTS iceberg.fmcg.pos_transactions_historical (
 
 ### Step 5: Start POS Transaction Simulation
 Trigger the generator via the Ingest API to push synthetic POS data (1,000 requests/sec):
+
+```powershell
+# Windows (PowerShell)
+Invoke-RestMethod -Uri "http://localhost:8000/api/v1/simulate?count=14000" -Method Post
+```
+
 ```bash
-curl "http://localhost:8000/api/v1/simulate?count=14000"
+# macOS/Linux (Bash)
+curl -X POST "http://localhost:8000/api/v1/simulate?count=14000"
 ```
 Monitor the Kafka UI on port 8080 to watch offsets increase and check that ClickHouse ingestion lag remains under 2 seconds.
 

@@ -337,8 +337,15 @@ CREATE TABLE IF NOT EXISTS iceberg.fmcg.pos_transactions_historical (
 
 ### Bước 5: Chạy giả lập giao dịch POS
 Kích hoạt generator qua Ingest API gửi dữ liệu POS giả lập (tải 1,000 yêu cầu/giây):
+
+```powershell
+# Windows (PowerShell)
+Invoke-RestMethod -Uri "http://localhost:8000/api/v1/simulate?count=14000" -Method Post
+```
+
 ```bash
-curl "http://localhost:8000/api/v1/simulate?count=14000"
+# macOS/Linux (Bash)
+curl -X POST "http://localhost:8000/api/v1/simulate?count=14000"
 ```
 Theo dõi Kafka UI trên cổng 8080 để kiểm tra dữ liệu tăng và đảm bảo độ trễ ingestion của ClickHouse dưới 2 giây.
 
