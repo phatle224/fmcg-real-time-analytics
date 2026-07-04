@@ -37,7 +37,7 @@
       "targets": [
         {
           "datasource": { "type": "grafana-clickhouse-datasource", "uid": "clickhouse-fmcg" },
-          "rawSql": "SELECT toStartOfMinute(now()) AS time, sumMerge(revenue) AS value FROM pos_hourly_agg WHERE hour >= toStartOfDay(now()) FORMAT JSONEachRow",
+          "rawSql": "SELECT sum(revenue) AS value FROM pos_hourly_agg WHERE hour >= toStartOfDay(now()) FORMAT JSONEachRow",
           "refId": "A",
           "format": "table"
         }
@@ -139,7 +139,7 @@
           "datasource": { "type": "grafana-clickhouse-datasource", "uid": "clickhouse-fmcg" },
           "rawSql": "SELECT toStartOfMinute(timestamp) AS time, region, sum(total_amount) AS value FROM pos_transactions WHERE $__timeFilter(timestamp) GROUP BY time, region ORDER BY time ASC FORMAT JSONEachRow",
           "refId": "A",
-          "format": "time_series"
+          "format": "timeSeries"
         }
       ]
     },
@@ -153,7 +153,7 @@
       },
       "gridPos": { "h": 9, "w": 8, "x": 16, "y": 5 },
       "id": 6,
-      "options": { "displayLabels": ["percent"], "legend": { "displayMode": "list", "placement": "bottom" }, "pieType": "donut" },
+      "options": { "reduceOptions": { "values": true }, "displayLabels": ["percent"], "legend": { "displayMode": "list", "placement": "bottom" }, "pieType": "donut" },
       "title": "Revenue by Category",
       "type": "piechart",
       "targets": [
@@ -207,7 +207,7 @@
           "datasource": { "type": "grafana-clickhouse-datasource", "uid": "clickhouse-fmcg" },
           "rawSql": "SELECT toStartOfMinute(timestamp) AS time, count() AS value FROM pos_transactions WHERE $__timeFilter(timestamp) GROUP BY time ORDER BY time ASC FORMAT JSONEachRow",
           "refId": "A",
-          "format": "time_series"
+          "format": "timeSeries"
         }
       ]
     }
