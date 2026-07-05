@@ -42,7 +42,7 @@ Dự án này triển khai hệ thống **FMCG Real-Time Retail POS Analytics Pl
 Mục tiêu cốt lõi là tự động hóa xử lý giao dịch, định nghĩa các chỉ số đo lường chuẩn hóa thông qua tầng ngữ nghĩa Cube.js, và hỗ trợ các truy vấn liên kết đa nguồn bằng Trino giúp các nhà phân tích dễ dàng thực hiện JOIN dữ liệu thời gian thực và lịch sử.
 
 ### Bảng Điều Khiển Thời Gian Thực (Grafana Preview)
-![Grafana Real-Time Dashboard](https://picsum.photos/seed/fmcg-grafana-dashboard/1280/720)
+![Grafana Real-Time Dashboard](docs/images/grafana_realtime_dashboard.png)
 
 ---
 

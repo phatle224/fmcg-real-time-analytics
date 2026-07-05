@@ -42,7 +42,7 @@ This project implements a high-performance **FMCG Real-Time Retail POS Analytics
 The core objective is to automate transaction processing, define standardized semantic metrics via Cube.js, and support federated cross-source queries via Trino to enable analysts to join real-time and historical datasets seamlessly.
 
 ### Real-Time Analytics Dashboard (Grafana Preview)
-![Grafana Real-Time Dashboard](https://picsum.photos/seed/fmcg-grafana-dashboard/1280/720)
+![Grafana Real-Time Dashboard](docs/images/grafana_realtime_dashboard.png)
 
 ---
 
